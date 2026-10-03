@@ -1,0 +1,134 @@
+{
+  "info": {
+    "name": "App Backend - Auth",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" }
+  ],
+  "item": [
+    {
+      "name": "Register - sukses",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('email', 'user' + Date.now() + '@example.com');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 201', () => pm.response.to.have.status(201));",
+              "const json = pm.response.json();",
+              "pm.test('Pesan sukses', () => pm.expect(json.message).to.eql('Registrasi berhasil'));",
+              "pm.test('User punya id dan email sesuai', () => {",
+              "  pm.expect(json.user.id).to.be.a('number');",
+              "  pm.expect(json.user.email).to.eql(pm.collectionVariables.get('email'));",
+              "});",
+              "pm.test('Password tidak ikut dikembalikan', () => pm.expect(json.user).to.not.have.property('password'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Adam\",\n  \"email\": \"{{email}}\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+        },
+        "url": "{{baseUrl}}/api/register"
+      }
+    },
+    {
+      "name": "Register - email sudah dipakai",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 422', () => pm.response.to.have.status(422));",
+              "pm.test('Error di field email', () => pm.expect(pm.response.json().errors).to.have.property('email'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Adam\",\n  \"email\": \"{{email}}\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+        },
+        "url": "{{baseUrl}}/api/register"
+      }
+    },
+    {
+      "name": "Register - password tidak cocok",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 422', () => pm.response.to.have.status(422));",
+              "pm.test('Error di field password', () => pm.expect(pm.response.json().errors).to.have.property('password'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Adam\",\n  \"email\": \"lain@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"beda12345\"\n}"
+        },
+        "url": "{{baseUrl}}/api/register"
+      }
+    },
+    {
+      "name": "Register - field kosong",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status 422', () => pm.response.to.have.status(422));",
+              "pm.test('name, email, password wajib', () => {",
+              "  const errors = pm.response.json().errors;",
+              "  pm.expect(errors).to.have.all.keys('name', 'email', 'password');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{}" },
+        "url": "{{baseUrl}}/api/register"
+      }
+    }
+  ]
+}
